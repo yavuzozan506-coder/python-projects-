@@ -1,0 +1,238 @@
+import json
+
+envanter = {
+
+}
+
+dosya="envanter.json"
+
+try:
+    with open(dosya,"r",encoding="utf-8") as f:
+        envanter= json.load(f)
+except(FileNotFoundError,json.JSONDecodeError):
+    envanter={}
+    
+def urun_ekle(kod,isim,fiyat,stok):
+    while True:
+        try:
+            fiyat=float(fiyat)
+            if fiyat <= 0:
+                print("Hata!! fiyat bir pozitif tam sayı olmalı")
+                fiyat= input(f"{isim} ürünü için fiyatı yeniden giriniz")
+                continue
+            break
+        
+        except ValueError:
+            print("Hata!! Lütfen Bir sayı değeri giriniz")
+            fiyat= input(f"{isim} ürünü için fiyatı yeniden giriniz")
+        
+    while True:
+        try:
+            stok=int(stok)
+            if stok <= 0 :
+                print("Hata!! stok bir pozitif tam sayı olmalı")
+                stok = input(f"{isim} ürünü için stoku yeniden giriniz")
+                continue
+            break
+        except ValueError:
+            print("Hata!! Lütfen Bir sayı değeri giriniz")
+            stok = input(f"{isim} ürünü için stoku yeniden giriniz")
+    if kod in envanter:
+        print(f"Hata! {kod} kodlu ürün zaten envanterde mevcut")
+    else:
+        envanter[kod]={"isim":isim,"fiyat":fiyat,"stok":stok}
+        print(f"Başarılı  {isim} envantere ürün olarak eklendi")
+def urun_bul(kod):
+    urun = envanter.get(kod)
+    if urun:
+        print("-"*20)
+        print(f"stok kodu {kod}")
+        print(f"ürün ismi {urun["isim"]}")
+        print(f"ürün fiyatı {urun["fiyat"]}")
+        print(f"ürün stoğu {urun["stok"]}")
+        print("-"*20)
+    else:
+        print(f"Hata!! {kod} kodlu ürün bulunamadı ")
+def stok_guncelle(kod,yeni_stok):
+    if kod in envanter:
+        try:
+            if yeni_stok < 0:
+                print("Hata stok pozitif bir sayı olmalıdır.")
+                return False
+            envanter[kod]["stok"] = yeni_stok
+            print(f"stok güncelleme başarılı {kod} kodlu ürün {yeni_stok} olarak güncellendi")
+        except ValueError:
+            print(f"Hata! sayısal bir değer girilmelidir")
+    else:
+        print(f"{kod} kodlu ürün envanterde bulunamadı")
+        return False
+    
+def tum_urunler():
+    if not envanter:
+        print("Envanter boş")
+        return
+    print("---- Envanter listesi ----")
+    for kod, detaylar in envanter.items():
+        print(f"Kod: {kod}, İsim: {detaylar['isim']}, Fiyat: {detaylar['fiyat']} TL, Stok: {detaylar['stok']} adet")
+def urun_sil(kod):
+    if kod in envanter:
+        del envanter[kod]
+    else:
+        print(f"Hata!{kod} envanterde bulunmakatadır")
+def toplam_bul():
+    if not envanter:
+        print("Envanter boş olduğu için hesaplanmadı")
+        return
+    toplam_fiyat = sum(detay['fiyat'] for detay in envanter.values())
+    toplam_stok= sum(detay['stok'] for detay in envanter.values())
+    print(f"Envanterdeki ürünlerin toplam fiyatı {toplam_fiyat:,.2f} TL")
+    print(f"Envanterdeki ürünlerin toplam stok miktarı {toplam_stok} Adet")
+        
+def fiyat_araligi():
+    if not envanter:
+        print("Envanter boş işlem yapılamıyor")
+        return
+    print("\n--- Fiyat Aralığına Göre Filtreleme ---")
+    while True:
+        try:
+            min_fiyat = float(input("Lütfen minimum fiyatı giriniz"))
+            if min_fiyat < 0:
+                print("Lütfen pozitif bir sayı giriniz")
+                continue
+            break
+        except ValueError:
+            print("Lütfen sadece bir sayı giriniz")
+    while True:
+        try:
+            max_fiyat = float(input("Lütfen maximum fiyatı giriniz."))
+            if max_fiyat < min_fiyat:
+                print("Hata! minimum fiyattan daha küçük bir değer giremezsiniz")
+                continue
+            break
+        except ValueError:
+            print("Hata lütfen geçerli bir değer giriniz.")
+    filtrelenmis={}
+    for kod,detay in envanter.items():
+        if min_fiyat <= detay["fiyat"] <= max_fiyat:
+            filtrelenmis[kod] = detay
+    if filtrelenmis:
+        print(f"\n--- Fiyat Aralığı ({min_fiyat:.2f} TL - {max_fiyat:.2f} TL) ---")
+        for kod,detay in filtrelenmis.items():
+            print(f"Kod:{kod} İsim:{detay["isim"]} Fiyat:{detay["fiyat"]}TL,Stok:{detay["stok"]}adet")
+    else:
+        print(f"{min_fiyat:.2f}-{max_fiyat:.2f} aralığında ürün bulunamadı")
+
+
+        
+def stok_listele():
+    if not envanter:
+        print("Envanter boş işlem yapılamıyor")
+        return
+    print("\n----Düşük stok seviyesi sıralama-----")
+    
+    while True:
+        try:
+            limit = int(input("hangi stok seviyesinin altındakiler listelensin"))
+            if limit < 0:
+                print("hata! lütfen sıfırdan büyük bir değer giriniz")
+                continue
+            break
+        except ValueError:
+            print("Hata!! lütfen sayısal bir değer giriniz")
+
+    dusuk_stoklu = {}
+    for kod,detay in envanter.items():
+        if detay['stok'] < limit:
+            dusuk_stoklu[kod]=detay
+
+    if dusuk_stoklu:
+        print(f"\n---stok seviyesi {limit} adetin altındaki ürünler---")
+        for kod,detay in dusuk_stoklu.items():
+            print(f"Kod:{kod} İsim:{detay["isim"]} Fiyat:{detay["fiyat"]}TL,Stok:{detay["stok"]}adet")
+    else:
+        print(f"stoğu {limit} adetin altındaki ürünler bulunamadı")
+        
+
+def menu_goster():
+    while True:
+        print("\n--- Envanter Yönetim Sistemi ---")
+        print("1: Yeni Ürün Ekle")
+        print("2: Ürün Bul")
+        print("3: Stok Güncelle")
+        print("4: Tüm Ürünleri Listele")
+        print("5: Ürün sil")
+        print("6: Toplam envanter değeri")
+        print("7: Belirli fiyat aralığı")
+        print("8: Düşük stok seviyesine göre sıralama")
+        print("9: Çıkış")
+        
+
+        secim = input("Lütfen bir işlem seçin (1-9): ")
+
+        if secim == "1":
+            kod = input("Ürün kodu: ")
+            isim = input("Ürün ismi: ")
+            fiyat = input("Ürün fiyatı: ")
+            stok = input("Ürün stoğu: ")
+            urun_ekle(kod, isim, fiyat, stok)
+
+        elif secim == "2":
+            kod = input("Ürün kodu: ")
+            urun_bul(kod)
+
+        elif secim == "3":
+            kod_bulundu = False
+            while True:
+                kod = input("Güncellemek istediğiniz ürünün kodunu giriniz: ")
+                if kod.lower() == "iptal":
+                    print("stok güncelleme işlemi iptal edildi.")
+                    break
+            
+                if kod in envanter:
+                    kod_bulundu=True
+                    break
+                else:
+                    print("hata kod bulunamadı")
+                    break
+            if kod_bulundu:
+                while True:
+                        stok_string = input("Lütfen stok miktarını giriniz")
+                        try:
+                            yeni_stok = int(stok_string)
+
+                            if yeni_stok < 0:
+                                print("hata ! lütfen pozitif bir sayı giriniz")
+                                continue
+                            stok_guncelle(kod, yeni_stok)
+                            break
+                        except ValueError:
+                            print("hata lütfen sayısal bir değer giriniz")
+                            continue
+        elif secim == "4":
+            tum_urunler()
+        elif secim == "5":
+            urun_silme=input("Lütfen silinecek ürünün kodunu giriniz")
+
+            if urun_silme in envanter:
+                print("Ürününüz başarı ile silinmiştir")
+                urun_sil(urun_silme)
+            else:
+                print("Hata lütfen envanterdeki kodlardan birini giriniz")
+        elif secim == "6":
+            toplam_bul()
+        elif secim == "7":
+            fiyat_araligi()
+        elif secim == "8":
+            stok_listele()
+        elif secim == "9":
+            print("Veriler kaydediliyor, lütfen çıkış yapmayınız...")
+            with open(dosya, "w", encoding="utf-8") as f:
+                json.dump(envanter, f, ensure_ascii=False, indent=4)
+                print("Çıkış yapıldı, görüşmek üzere :)")
+                break
+        else:
+            print("Hata! Lütfen geçerli bir sayı giriniz.")
+
+if __name__ == "__main__":
+    menu_goster()
+        
