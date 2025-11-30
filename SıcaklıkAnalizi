@@ -1,0 +1,176 @@
+dataframe = pd.read_csv(dosya)
+
+satir,sutun = dataframe.shape
+numpy_array = dataframe.to_numpy()
+numpy_shape = numpy_array.shape
+
+print(f"Toplam satır sayısı: {satir}")
+print(f"Toplam sütun sayısı: {sutun}")
+print(f"Satır-Sütun sayısı: {numpy_shape}")
+
+#Kaç günün verisi bulunmaktadır?
+gun = dataframe['Gün']
+tekrarsiz_gunler = gun.unique()
+print(tekrarsiz_gunler)
+
+kac_gun = len(tekrarsiz_gunler)
+print(f"{kac_gun} gün bulunmaktadır")
+
+
+# Kaç farklı şehir için sıcaklık ölçümü yapılmıştır?
+sehir = dataframe['Şehir']
+tekrarsiz_sehirler = sehir.unique()
+print(tekrarsiz_sehirler)
+
+
+kac_sehir =len(tekrarsiz_sehirler)
+print(f"{kac_sehir} tane şehir bulunmaktadır")
+
+
+#Her şehir için ortalama, en yüksek ve en düşük sıcaklık değerlerini hesaplayınız.
+print("-----------Ortalama Sıcaklıklar----------")
+ortalama_sicaklik = dataframe.groupby('Şehir')['Sıcaklık(°C)'].mean()
+for sehir,sicaklik in ortalama_sicaklik.items():
+    print(f"\n{sehir}: {sicaklik:.2f}°C")
+
+
+print("---------- En yüksek Sıcaklıklar----------------")
+en_yuksek = dataframe.groupby('Şehir')['Sıcaklık(°C)'].max()
+for sehir,sicaklik in en_yuksek.items():
+    print(f"\n{sehir}: {sicaklik:.2f}°C")
+    
+
+print("--------En düşük sıcaklıklar------------")
+en_dusuk = dataframe.groupby('Şehir')['Sıcaklık(°C)'].min()
+for sehir,sicaklik in en_dusuk.items():
+    print(f"\n{sehir}: {sicaklik:.2f}°C")
+
+
+#Yukarıdaki sorunun cevaplarının matplotlib ile çizimi
+#İlk başta ortalama ile başlayalım
+
+sehirler = ortalama_sicaklik.index
+sicakliklar = ortalama_sicaklik.values
+
+plt.bar(sehirler,sicakliklar, color = 'Black')
+plt.title("Şehirlere göre sıcaklık ortalaması")
+plt.xlabel('Şehir')
+plt.ylabel('Derece')
+plt.xticks(rotation = 45, ha= 'right')
+plt.tight_layout()
+plt.savefig('ortalama_sicaklik.png')
+
+
+
+
+#Sıra geldi En yüksek sıcaklıklara
+
+sehirler2 = en_yuksek.index
+sicakliklar2 = en_yuksek.values
+
+plt.bar(sehirler2,sicakliklar2,color = 'Red')
+plt.title("Şehirlerin En yüksek sıcaklıkları")
+plt.xlabel('Şehir')
+plt.ylabel('Sıcaklık')
+plt.xticks(rotation = 25, ha = 'right')
+plt.tight_layout()
+plt.savefig('en_yuksek.png')
+
+
+
+
+#En düşük sıcaklıklar 
+sehirler3 = en_dusuk.index
+sicakliklar3 = en_dusuk.values
+plt.bar(sehirler3,sicakliklar3)
+plt.title('En düşük sıcaklıklar')
+plt.xlabel("Şehir")
+plt.ylabel("Sıcaklık")
+plt.xticks(rotation = 45, ha = 'right')
+plt.tight_layout()
+plt.savefig('en_dusuk.png')
+
+
+#Sıcaklıkların ne kadar değişken olduğunu belirlemek
+
+#Standart sapma alırız
+print("\n---------Standart sapmalar-----------")
+sicaklik_degiskenlik = dataframe.groupby('Şehir')['Sıcaklık(°C)'].std().sort_values(ascending = False)
+for sehir,sicaklik in sicaklik_degiskenlik.items():
+    print(f"{sehir}: {sicaklik:.2f}°C\n")
+sicaklik_dalgalanması_en_yuksek = dataframe.groupby('Şehir')['Sıcaklık(°C)'].std().sort_values(ascending = False).index[0]
+print(f"\n{sicaklik_dalgalanması_en_yuksek} Sıcaklık dalgalanması en yüksek şehirdir")
+
+#Standart sapması en yüksek olan şehir Tekirdağdır o yüzden sıcaklık arası en çok dalgalanma olan Şehirdir
+#Standart sapması en düşük şehir olan İstanbulda Sıcaklıklar daha dengeli seyretmektedir
+
+
+
+gun_degiskenlik = dataframe.groupby('Gün')['Sıcaklık(°C)'].mean()
+
+en_sicak = gun_degiskenlik.max()
+
+print("-------Sıcaklık değişkenliği----------")
+for gun,ortalama in gun_degiskenlik.items():
+    print(f"Gün {gun}: {ortalama:.2f}°C")
+    
+
+en_sicak_gun = gun_degiskenlik.idxmax()
+
+print(f"\nEn sıcak gün {en_sicak_gun}.Gündür ve bu gündeki sıcaklık değeri ortalama {en_sicak:.2f}°C'dir")
+
+en_soguk = gun_degiskenlik.min()
+en_soguk_gun = gun_degiskenlik.idxmin()
+
+print(f"\nEn soğuk gün {en_soguk_gun}.Gün ve bu gündeki sıcaklık değeri ortalama {en_soguk:.2f}°C'dir")
+
+print(f"\nSıcaklık değerleri arasındaki fark {en_sicak - en_soguk:.2f}°C")
+
+
+
+
+
+#Zamanla artış mı göstermekte, azalış mı ?
+
+
+gun_numara = pd.Series(gun_degiskenlik.index)
+korelasyon = gun_degiskenlik.corr(gun_numara)
+
+print(f"Gün Numarası (Zaman) ile Günlük Ortalama Sıcaklık Arasındaki Korelasyon(Yani artış eğilimi): +{korelasyon:.4f}")
+
+
+
+plt.plot(gun_degiskenlik.index,gun_degiskenlik.values,marker='o',linestyle = '-')
+plt.title("Günlük sıcaklık değişimlerinin izlediği seyir")
+plt.xlabel('Gün')
+plt.ylabel('Sıcaklık')
+
+
+pivot_df = dataframe.pivot(index = 'Gün',columns='Şehir',values = 'Sıcaklık(°C)')
+sehir_isimleri = pivot_df.columns
+
+
+fig, axes = plt.subplots(nrows=2,ncols=3,figsize=(15,10))
+axes = axes.flatten()
+
+for i,sehir in enumerate(sehir_isimleri):
+    pivot_df[sehir].plot(ax=axes[i])
+
+    axes[i].set_title(f'{sehir}-30 günlük sıcaklık değişimi')
+
+
+sehirler_max = dataframe.groupby('Şehir')['Sıcaklık(°C)'].agg(['max','min'])
+sehirler_max['Fark(°C)'] = sehirler_max['max']-sehirler_max['min']
+en_buyuk_fark_degeri = sehirler_max['Fark(°C)'].max()
+
+
+for col in['max','min','Fark(°C)']:
+    sehirler_max[col] = sehirler_max[col].apply(lambda x: f"{x:.1f}°C")
+    
+
+
+en_buyuk_sehir = sehirler_max['Fark(°C)'].idxmax()
+
+print(sehirler_max)
+print(f"\nEn büyük sıcaklık farkı {en_buyuk_sehir}: {en_buyuk_fark_degeri:.2f}°C")
+
