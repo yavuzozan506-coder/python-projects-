@@ -1,0 +1,16 @@
+print("Güvenli parola üretici")
+
+tum_karakterler = string.ascii_letters + string.digits + string.punctuation
+
+parola_uzunlugu = random.randint(12,16)
+parola_listesi = []
+
+for _ in range(parola_uzunlugu):
+    rastgele_karakter = random.choice(tum_karakterler)
+    parola_listesi.append(rastgele_karakter)
+
+random.shuffle(parola_listesi)
+
+guvenli_parola = ".".join(parola_listesi)
+
+print(f"Üretilen Güvenli Parola ({parola_uzunlugu} karakter): {guvenli_parola}")
