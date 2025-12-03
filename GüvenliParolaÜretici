@@ -1,3 +1,5 @@
+import random
+
 print("Güvenli parola üretici")
 
 tum_karakterler = string.ascii_letters + string.digits + string.punctuation
