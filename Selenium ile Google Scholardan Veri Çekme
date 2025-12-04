@@ -1,0 +1,46 @@
+import sys
+import csv
+from selenium import  webdriver
+from selenium.webdriver import Keys
+from selenium.webdriver.common import keys
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from time import sleep
+import chromedriver_autoinstaller
+service = Service("chromedriver.exe")
+chromedriver_autoinstaller.install()
+
+csv_dosya = 'scholar.csv'
+
+
+driver = webdriver.Chrome()
+site_url = "https://scholar.google.com/scholar?q=Deep Learning"
+driver.get(site_url)
+driver.maximize_window()
+sleep(5)
+veri_liste = []
+
+
+
+try:
+    sonuclar = driver.find_elements(By.CSS_SELECTOR,'div.gs_ri')
+    for sonuc in sonuclar:
+        baslik = sonuc.find_element(By.TAG_NAME,'h3')
+        baslik_yazi = baslik.text
+        yazar = sonuc.find_element(By.CLASS_NAME,'gs_a')
+        yazar_yazi = yazar.text
+        veri_liste.append([baslik_yazi, yazar_yazi])
+
+except Exception as e:
+    print(f" Ana sonuçları çekme hatası: {e}")
+
+finally:
+    driver.quit()
+
+if veri_liste:
+    with open('scholar.csv','w',newline='',encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(["Başlık","Yazar ve Kaynak"])
+        writer.writerows(veri_liste)
+print("Kayıt işlemi başarılı")
+print(f"Toplam: {len(veri_liste)} sonuç, {csv_dosya} dosyasına kaydedildi.")
